@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -28,7 +28,11 @@ namespace JWTWebApp.Pages
 
         public async Task OnGet()
         {
-            using (var client = new HttpClient())
+            //just for test in local host
+            HttpClientHandler httpClientHandler = new HttpClientHandler();
+            httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+
+            using (var client = new HttpClient(httpClientHandler))
             {
                 #region FormContentForPostRequest
                 var content = new FormUrlEncodedContent(new[]
@@ -41,7 +45,7 @@ namespace JWTWebApp.Pages
 
 
                 #region GetTokenByPostRequest
-                var tokenResult = await client.PostAsync("https://localhost:5001/api/Account/SignInUser", content);
+                var tokenResult = await client.PostAsync("https://host.docker.internal:5007/api/Account/SignInUser", content);
                 var token = System.Text.Json.JsonSerializer.Deserialize<TokenObject>
                     (await tokenResult.Content.ReadAsStringAsync(),
                     new JsonSerializerOptions(JsonSerializerDefaults.Web));
@@ -51,7 +55,7 @@ namespace JWTWebApp.Pages
                 #region GetUserIdByGetRequest
                 //add Authorization header for JWT to authenticate client
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer  {Token}");
-                var userIdResult = await client.GetAsync("https://localhost:5001/api/Account/IsUserLogIn?username=developer");
+                var userIdResult = await client.GetAsync("https://host.docker.internal:5007/api/Account/IsUserLogIn?username=developer");
                 UserId = await userIdResult.Content.ReadAsStringAsync();
                 #endregion
             }

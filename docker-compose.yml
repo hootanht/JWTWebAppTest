@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  apiwebapp:
+    image: ${DOCKER_REGISTRY-}apiwebapp
+    build:
+      context: .
+      dockerfile: APIWebApp/Dockerfile
+    ports:
+      - "5007:443"
+
+  jwtwebapp:
+    image: ${DOCKER_REGISTRY-}jwtwebapp
+    build:
+      context: .
+      dockerfile: JWTWebApp/Dockerfile
+    ports:
+      - "5006:443"
+    depends_on:
+    - apiwebapp
